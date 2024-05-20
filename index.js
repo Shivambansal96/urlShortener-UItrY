@@ -31,7 +31,7 @@ const isvalidURL = (url) => {
 }
 
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/ui.html')
+    res.sendFile(__dirname + '/index.html')
 })
 
 
@@ -60,9 +60,10 @@ app.post('/url-shortener', (req, res) => {
     const urlDataJson = JSON.parse(urlData);
     urlDataJson[shortURL] = req.body.url;
 
-    // console.log();
+    console.log(urlDataJson[shortURL]);
     // const logginURLs = JSON.stringify(urlDataJson)
     fs.writeFileSync('urls.json', JSON.stringify(urlDataJson))
+
     
     res.json({
         status: true,
@@ -76,6 +77,12 @@ app.get('/:shortURL', (req, res) => {
     const fileDataJson = JSON.parse(fileData);
     const smallURL  = req.params.shortURL;
     const longURL = fileDataJson[smallURL];
+
+    console.log(smallURL, ' = ', longURL);
+
+    const data = smallURL + ' = ' + longURL;
+
+    fs.appendFileSync('data.log', "\n" + data)
 
     if(!longURL) {
         return res.status(404).json({
@@ -97,7 +104,7 @@ const errorHandlingMiddleware = (err, req, res, next) => {
     })
 }
 
-// app.use(errorHandlingMiddleware);
+app.use(errorHandlingMiddleware);
 
 app.listen(8008, () => {
     console.log('Server is running at PORT 8008');
