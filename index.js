@@ -3,10 +3,8 @@ import express, { json } from 'express';
 import { nanoid } from 'nanoid';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
 import { log } from 'console';
 
-// const express = require('express');
 
 const app = express();
 
@@ -14,6 +12,7 @@ const __filename =  fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename)
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const isvalidURL = (url) => {
     
@@ -36,8 +35,9 @@ app.get('/', (req, res) => {
 
 
 app.post('/url-shortener', (req, res) => {
+    const { longUrl } = req.body;
 
-    if(!isvalidURL(req.body.url)) {
+    if(!isvalidURL(longUrl)) {
         return res.status(400).json({
             success: false,
             message: "Invalid URL! Please enter a Valid URL!"
@@ -58,7 +58,7 @@ app.post('/url-shortener', (req, res) => {
 
     const urlData = fs.readFileSync('urls.json', {encoding:'utf-8'});
     const urlDataJson = JSON.parse(urlData);
-    urlDataJson[shortURL] = req.body.url;
+    urlDataJson[shortURL] = longUrl;
 
     console.log(urlDataJson[shortURL]);
     // const logginURLs = JSON.stringify(urlDataJson)
@@ -98,7 +98,7 @@ const errorHandlingMiddleware = (err, req, res, next) => {
     fs.appendFileSync('Errors.log', '\n' + err)
     console.log('ErrorHandlingMiddleware Error = ', err);
 
-    res.status(404).json({
+    res.status(500).json({
         status: false,
         message: 'Middleware Error'
     })
@@ -109,3 +109,90 @@ app.use(errorHandlingMiddleware);
 app.listen(8008, () => {
     console.log('Server is running at PORT 8008');
 })
+
+
+
+
+// import fs from 'fs';
+// import express from 'express';
+// import { nanoid } from 'nanoid';
+// import path from 'path';
+// import { fileURLToPath } from 'url';
+
+// const app = express();
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+
+// app.use(express.json());
+// app.use(express.urlencoded({ extended: true }));
+
+// const isValidURL = (url) => {
+//     try {
+//         new URL(url);
+//         return true;
+//     } catch (err) {
+//         console.log('ERROR = ', err);
+//         return false;
+//     }
+// }
+
+// app.get('/', (req, res) => {
+//     res.sendFile(path.join(__dirname, 'index.html'));
+// });
+
+// app.post('/url-shortener', (req, res) => {
+//     const { longUrl } = req.body;
+
+
+//     if (!isValidURL(longUrl)) {
+//         return res.status(400).json({
+//             success: false,
+//             message: "Invalid URL! Please enter a valid URL!"
+//         });
+//     }
+
+//     const shortURL = nanoid(11);
+
+//     const urlData = fs.readFileSync('urls.json', { encoding: 'utf-8' });
+//     const urlDataJson = JSON.parse(urlData);
+//     urlDataJson[shortURL] = longUrl;
+
+//     fs.writeFileSync('urls.json', JSON.stringify(urlDataJson));
+
+//     res.json({
+//         success: true,
+//         data: `http://localhost:8008/${shortURL}`
+//     });
+// });
+
+// app.get('/:shortURL', (req, res) => {
+//     const fileData = fs.readFileSync('urls.json', { encoding: 'utf-8' });
+//     const fileDataJson = JSON.parse(fileData);
+//     const shortURL = req.params.shortURL;
+//     const longURL = fileDataJson[shortURL];
+
+//     if (!longURL) {
+//         return res.status(404).json({
+//             success: false,
+//             message: 'No page found'
+//         });
+//     }
+
+//     res.redirect(longURL);
+// });
+
+// const errorHandlingMiddleware = (err, req, res, next) => {
+//     fs.appendFileSync('Errors.log', '\n' + err);
+//     console.log('ErrorHandlingMiddleware Error = ', err);
+
+//     res.status(500).json({
+//         success: false,
+//         message: 'Middleware Error'
+//     });
+// }
+
+// app.use(errorHandlingMiddleware);
+
+// app.listen(8008, () => {
+//     console.log('Server is running at PORT 8008');
+// });
